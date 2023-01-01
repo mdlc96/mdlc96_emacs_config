@@ -41,6 +41,8 @@
   (cond 
    ((find-font (font-spec :name "JetBrains Mono NL"))
     (set-frame-font "JetBrains Mono NL 14" nil t)))
+  :bind(("C-c C-q" . comment-or-uncomment-region)
+	)
   )
 
 ;; easy window navigation
@@ -512,26 +514,29 @@
          )))
   :hook (verilog-mode . verilog-extend-font-lock)
   )
-    
+
+
+
+(use-package emacs ; without this operandi theme is loaded.
+  :init
+  :config
+  ;; Load the theme of your choice.
+  (load-theme 'modus-vivendi :noconfirm))
+
 
 ;;; For packaged versions which must use `require':
 (use-package modus-themes
-  :ensure
+  :ensure t
   :init
-  ;; Add all your customizations prior to loading the themes
-  (setq modus-themes-italic-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-region '(bg-only)
-        modus-themes-syntax '(yellow-comments)
-        modus-themes-paren-match '(bold intense)
-        modus-themes-mode-line '(accented borderless (padding . 4) (height . 0.9))
-)
-
-  ;; Load the theme files before enabling a theme
-  (modus-themes-load-themes)
+  (setq modus-themes-common-palette-overrides '((comment yellow-cooler)
+					;(string green-cooler)
+						(bg-paren-match bg-magenta-intense)
+						(bg-region bg-ochre) ; try to replace `bg-ochre' with `bg-lavender', `bg-sage'
+						(fg-region unspecified))
+	modus-themes-italic-constructs t)
   :config
   ;; Load the theme of your choice:
-  (modus-themes-load-vivendi) ;; OR (modus-themes-load-vivendi)
+  (load-theme 'modus-vivendi :noconfirm)
   :bind ("<f5>" . modus-themes-toggle))
 
 ;;; doom modeline
@@ -540,6 +545,9 @@
   :hook (after-init . doom-modeline-mode))
 
 (use-package all-the-icons
+  :ensure t)
+
+(use-package p4
   :ensure t)
 
 ;;;;;
@@ -610,16 +618,15 @@
 ;;   (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
 
 ;; (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("3199be8536de4a8300eaf9ce6d864a35aa802088c0925e944e2b74a574c68fd0" default))
+   '("5a9c693de1999fae9ba09269a4aae08740d6dd342c510e416f42b49f59d63fe0" "3ab376acffab6b4e79ae2b6e0a1cce3fa21dbac0027f0ff0dfef02b5c838dba9" default))
  '(package-selected-packages
-   '(modus-themes which-key vertico use-package projectile orderless marginalia lsp-ui lsp-pyright lsp-ivy helm-lsp embark-consult doom-themes dap-mode corfu company citre bm)))
+   '(p4 yasnippet ws-butler vertico use-package symbol-overlay smartparens rainbow-delimiters projectile orderless no-littering modus-themes marginalia embark-consult doom-modeline corfu citre cape bm all-the-icons ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
