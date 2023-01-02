@@ -1,46 +1,98 @@
-; use-package setup
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(add-to-list 'package-archives '("gnu"   . "https://elpa.gnu.org/packages/"))
-; use-package installation/checking
-(package-initialize)
+;; Install straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-(eval-and-compile
-  (setq use-package-always-ensure t
-        use-package-expand-minimally t))
 
+(straight-use-package 'use-package)
+
+;; Configure use-package to use straight.el by default
+(use-package straight
+             :custom (straight-use-package-by-default t))
+
+(use-package auto-package-update
+   :ensure t
+   :config
+   (setq auto-package-update-delete-old-versions t
+         auto-package-update-interval 4)
+   (auto-package-update-maybe))
 
 ; load as soon as possible.
 ; avoids emacs generating littering files all over the place.
 (use-package no-littering
   :ensure t
-  )
-; emacs base config 
+  :custom
+  (setq auto-save-file-name-transforms
+	`((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+
+;; (use-package display-line-numbers
+;;   :ensure nil
+;;   :straight nil
+;;   :custom
+;;   (global-display-line-numbers-mode))
+
+;; (use-package compile
+;;   :ensure nil
+;;   :custom
+;;   (compilation-scroll-output t "Scroll compilation buffer.")
+;;   (compilation-always-kill   t "Do not ask for confimation."))
+
+;; (use-package files
+;;   :ensure nil
+;;   :custom
+;;   (make-backup-files nil "Do not make backup files on save buffer.")
+;;   (auto-save-default nil "Do not auto-save of every file-visiting buffer.")
+;;   (create-lockfiles  nil "Do not use lock-files.")
+;;   (require-final-newline t "Ends file with a newline."))
+
+;; (use-package recentf
+;;   :ensure nil
+;;   :custom
+;;   (add-to-list 'recentf-exclude no-littering-var-directory)
+;;   (add-to-list 'recentf-exclude no-littering-etc-directory))
+
+;modus themes need to be loaded as soon as possible.
+;then load one of them with use-package emacs, if this theme is desired
+(use-package modus-themes
+  :init
+  (setq modus-themes-common-palette-overrides '((comment yellow-cooler)
+					;(string green-cooler)
+						(bg-paren-match bg-magenta-intense)
+						(bg-region bg-ochre) ; try to replace `bg-ochre' with `bg-lavender', `bg-sage'
+						(fg-region unspecified))
+	modus-themes-italic-constructs t)
+  :config
+  ;; Load the theme of your choice:
+  ;(load-theme 'modus-vivendi :noconfirm)
+  :bind ("<f5>" . modus-themes-toggle))
+
+; emacs base config
 (use-package emacs
   :init
   (setq inhibit-startup-screen t
-        column-number-mode t ; show column number
+	column-number-mode t ; show column number
         line-number-mode t ; show line number
-        make-backup-files nil ; stop creating ~ files
         indent-tabs-mode nil ; always use spaces, not tabs
-        enable-recursive-minibuffers t
-        )
-  (global-display-line-numbers-mode)
+        enable-recursive-minibuffers t)
   (show-paren-mode t)
-  
-  (require 'recentf)
-  (add-to-list 'recentf-exclude no-littering-var-directory)
-  (add-to-list 'recentf-exclude no-littering-etc-directory)
-  (setq auto-save-file-name-transforms
-	`((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
   ;set frame font
-  (cond 
-   ((find-font (font-spec :name "JetBrains Mono NL"))
-    (set-frame-font "JetBrains Mono NL 14" nil t)))
+  ;; (cond
+  ;;  ((find-font (font-spec :name "JetBrains Mono NL"))
+  ;;   (set-frame-font "JetBrains Mono NL 14" nil t)))
+  (cond
+   ((find-font (font-spec :name "IBM Plex Mono"))
+    (set-frame-font "IBM Plex Mono 14" nil t)))
+
   :bind(("C-c C-q" . comment-or-uncomment-region)
 	)
   )
@@ -86,16 +138,15 @@
 (use-package yasnippet
   :ensure t
   :init
+  ; snippet folder
   (setq yas-snippet-dirs
-      '("~/.emacs.d/snippets"  ;; personal snippets
-        ))  
-  (yas-global-mode 1)
-  )
+      '("~/.emacs.d/snippets"))
+  (yas-global-mode 1))
 
 ;; vertico
 ;; Enable vertico
 (use-package vertico
-  :ensure t
+  :straight (:files (:defaults "extensions/*"))
   :init
   (vertico-mode)
   
@@ -110,19 +161,13 @@
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   ;; (setq vertico-cycle t)
 
-  :config
-  (require 'vertico-mouse)
-  (require 'vertico-directory)
   (vertico-mouse-mode)
-  
+
   :bind (:map vertico-map
-              ("\r" . vertico-directory-enter) ; \t alternative. 
+              ("\r" . vertico-directory-enter) ; \t alternative.
               ("\d" . vertico-directory-delete-char)
-              ("\M-\d" . vertico-directory-delete-word)
-              )
-  
-  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)      
-  )
+              ("\M-\d" . vertico-directory-delete-word))
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 ; orderless
 (use-package orderless
@@ -298,52 +343,78 @@
 
  					; corfu autocompletion
 (use-package corfu
-  ;; Optional customizations
   :custom
-  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-  (corfu-auto t)                 ;; Enable auto completion
+  (corfu-cycle nil)                ;; Enable cycling for `corfu-next/previous'
+  (corfu-auto nil)                 ;; Enable auto completion
   (corfu-separator ?\s)          ;; Orderless field separator
-  (corfu-quit-at-boundary t)   ;; Never quit at completion boundary
-  (corfu-quit-no-match t)      ;; Never quit, even if there is no match
+  (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  (corfu-quit-no-match 'separator)      ;; Never quit, even if there is no match
   (corfu-preview-current nil)    ;; Disable current candidate preview
   (corfu-preselect-first nil)    ;; Disable candidate preselection
   (corfu-on-exact-match nil)     ;; Configure handling of exact matches
   (corfu-echo-documentation nil) ;; Disable documentation in the echo area
   (corfu-scroll-margin 5)        ;; Use scroll margin
 
-  ;; Enable Corfu only for certain modes.
-  ;; :hook ((prog-mode . corfu-mode)
-  ;;        (shell-mode . corfu-mode)
-  ;;        (eshell-mode . corfu-mode))
+  (corfu-min-width 80)
+  (corfu-max-width corfu-min-width)     ; Always have the same width
+  (corfu-count 10)
+  (corfu-auto-delay 0.25)
+  (corfu-auto-prefix 3)
 
-  ;; Recommended: Enable Corfu globally.
-  ;; This is recommended since Dabbrev can be used globally (M-/).
-  ;; See also `corfu-excluded-modes'.
+  (tab-always-indent 'complete)
+  (completion-cycle-threshold nil)
 
   :bind
   ;; Another key binding can be used, such as S-SPC.
   (:map corfu-map
         ("C-SPC" . corfu-insert-separator)
         ([return] . corfu-complete) ;corfu-insert?
-        )
+         ("C-n" . corfu-next)
+            ("C-p" . corfu-previous)
+            ("<escape>" . corfu-quit)
+            ("<return>" . corfu-insert)
+            ("M-d" . corfu-show-documentation)
+            ("M-l" . corfu-show-location)
+            ("C-SPC" . corfu-insert-separator))
   
   :init
-  (global-corfu-mode))
+  (global-corfu-mode)
 
-;; A few more useful configurations...
-(use-package emacs
-  :init
-  ;; TAB cycle if there are only few candidates
-  (setq completion-cycle-threshold 3)
+  :config
 
-  ;; Emacs 28: Hide commands in M-x which do not apply to the current mode.
-  ;; Corfu commands are hidden, since they are not supposed to be used via M-x.
-  ;; (setq read-extended-command-predicate
-  ;;       #'command-completion-default-include-p)
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
+                (bound-and-true-p vertico--input))
+      (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1))
 
-  ;; Enable indentation+completion using the TAB key.
-  ;; `completion-at-point' is often bound to M-TAB.
-  (setq tab-always-indent 'complete))
+(use-package kind-icon
+  :after corfu
+  :disabled
+  :custom
+  (kind-icon-use-icons t)
+  (kind-icon-default-face 'corfu-default) ; Have background color be the same as `corfu' face background
+  (kind-icon-blend-background nil)  ; Use midpoint color between foreground and background colors ("blended")?
+  (kind-icon-blend-frac 0.08)
+
+  ;; NOTE 2022-02-05: `kind-icon' depends `svg-lib' which creates a cache
+  ;; directory that defaults to the `user-emacs-directory'. Here, I change that
+  ;; directory to a location appropriate to `no-littering' conventions, a
+  ;; package which moves directories of other packages to sane locations.
+  (svg-lib-icons-dir (no-littering-expand-var-file-name "svg-lib/cache/")) ; Change cache dir
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter) ; Enable `kind-icon'
+
+  ;; Add hook to reset cache so the icon colors match my theme
+  ;; NOTE 2022-02-05: This is a hook which resets the cache whenever I switch
+  ;; the theme using my custom defined command for switching themes. If I don't
+  ;; do this, then the backgound color will remain the same, meaning it will not
+  ;; match the background color corresponding to the current theme. Important
+  ;; since I have a light theme and dark theme I switch between. This has no
+  ;; function unless you use something similar
+  (add-hook 'kb/themes-hooks #'(lambda () (interactive) (kind-icon-reset-cache))))
 
 (use-package cape
   ;; Bind dedicated completion commands
@@ -373,7 +444,7 @@
   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
   ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
   ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  (add-to-list 'completion-at-point-functions #'cape-abbrev)
   (add-to-list 'completion-at-point-functions #'cape-ispell)
   ;;(add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-symbol)
@@ -484,6 +555,7 @@
 
 
 (use-package verilog-mode
+  :ensure t
   :init
   (setq verilog-indent-spaces 4
         verilog-indent-level             verilog-indent-spaces
@@ -524,28 +596,14 @@
   (load-theme 'modus-vivendi :noconfirm))
 
 
-;;; For packaged versions which must use `require':
-(use-package modus-themes
-  :ensure t
-  :init
-  (setq modus-themes-common-palette-overrides '((comment yellow-cooler)
-					;(string green-cooler)
-						(bg-paren-match bg-magenta-intense)
-						(bg-region bg-ochre) ; try to replace `bg-ochre' with `bg-lavender', `bg-sage'
-						(fg-region unspecified))
-	modus-themes-italic-constructs t)
-  :config
-  ;; Load the theme of your choice:
-  (load-theme 'modus-vivendi :noconfirm)
-  :bind ("<f5>" . modus-themes-toggle))
 
 ;;; doom modeline
 (use-package doom-modeline
   :ensure t
   :hook (after-init . doom-modeline-mode))
 
-(use-package all-the-icons
-  :ensure t)
+;; (use-package all-the-icons
+;;   :ensure t)
 
 (use-package p4
   :ensure t)
@@ -626,7 +684,7 @@
  '(custom-safe-themes
    '("5a9c693de1999fae9ba09269a4aae08740d6dd342c510e416f42b49f59d63fe0" "3ab376acffab6b4e79ae2b6e0a1cce3fa21dbac0027f0ff0dfef02b5c838dba9" default))
  '(package-selected-packages
-   '(p4 yasnippet ws-butler vertico use-package symbol-overlay smartparens rainbow-delimiters projectile orderless no-littering modus-themes marginalia embark-consult doom-modeline corfu citre cape bm all-the-icons ace-window)))
+   '(verilog-mode p4 yasnippet ws-butler vertico use-package symbol-overlay smartparens rainbow-delimiters projectile orderless no-littering modus-themes marginalia embark-consult doom-modeline corfu citre cape bm all-the-icons ace-window)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
