@@ -2,7 +2,6 @@
 # key: vtask
 # group: verilog
 # --
-/*! Description */
-virtual task ${1:Name}();
+virtual task ${1:Name}($2);
    $0
 endtask : $1

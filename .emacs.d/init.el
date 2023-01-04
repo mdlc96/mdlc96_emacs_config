@@ -34,32 +34,6 @@
   (setq auto-save-file-name-transforms
 	`((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
-;; (use-package display-line-numbers
-;;   :ensure nil
-;;   :straight nil
-;;   :custom
-;;   (global-display-line-numbers-mode))
-
-;; (use-package compile
-;;   :ensure nil
-;;   :custom
-;;   (compilation-scroll-output t "Scroll compilation buffer.")
-;;   (compilation-always-kill   t "Do not ask for confimation."))
-
-;; (use-package files
-;;   :ensure nil
-;;   :custom
-;;   (make-backup-files nil "Do not make backup files on save buffer.")
-;;   (auto-save-default nil "Do not auto-save of every file-visiting buffer.")
-;;   (create-lockfiles  nil "Do not use lock-files.")
-;;   (require-final-newline t "Ends file with a newline."))
-
-;; (use-package recentf
-;;   :ensure nil
-;;   :custom
-;;   (add-to-list 'recentf-exclude no-littering-var-directory)
-;;   (add-to-list 'recentf-exclude no-littering-etc-directory))
-
 ;modus themes need to be loaded as soon as possible.
 ;then load one of them with use-package emacs, if this theme is desired
 (use-package modus-themes
@@ -82,8 +56,19 @@
 	column-number-mode t ; show column number
         line-number-mode t ; show line number
         indent-tabs-mode nil ; always use spaces, not tabs
-        enable-recursive-minibuffers t)
+        enable-recursive-minibuffers t
+
+	compilation-scroll-output t
+	compilation-always-kill t
+	;make-backup-files nil "Do not make backup files on save buffer."
+	;auto-save-default nil "Do not auto-save of every file-visiting buffer."
+	create-lockfiles  nil ;Do not use lock-files.
+	require-final-newline t) ;Ends file with a newline.
+					; find undo management if needed
+					;and package to manage selection of words...
+
   (show-paren-mode t)
+  (global-display-line-numbers-mode)
 
   ;set frame font
   ;; (cond
@@ -93,8 +78,15 @@
    ((find-font (font-spec :name "IBM Plex Mono"))
     (set-frame-font "IBM Plex Mono 14" nil t)))
 
-  :bind(("C-c C-q" . comment-or-uncomment-region)
-	)
+  :bind
+  ("C-c C-q" . comment-or-uncomment-region))
+
+(use-package recentf
+  :after no-littering
+  :custom
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory)
+  (recentf-mode)
   )
 
 ;; easy window navigation
@@ -146,7 +138,8 @@
 ;; vertico
 ;; Enable vertico
 (use-package vertico
-  :straight (:files (:defaults "extensions/*"))
+  :straight (vertico :files (:defaults "extensions/*")
+                     :includes (vertico-mouse vertico-directory))
   :init
   (vertico-mode)
   
@@ -164,7 +157,8 @@
   (vertico-mouse-mode)
 
   :bind (:map vertico-map
-              ("\r" . vertico-directory-enter) ; \t alternative.
+	      ("<tab>" . vertico-directory-enter)
+              ;("\t" . vertico-directory-enter) ; \t or \r
               ("\d" . vertico-directory-delete-char)
               ("\M-\d" . vertico-directory-delete-word))
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
@@ -175,7 +169,7 @@
   ;; Configure a custom style dispatcher (see the Consult wiki)
   ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
   ;;       orderless-component-separator #'orderless-escapable-split-on-space)
-  (setq completion-styles '(orderless basic)
+  (setq completion-styles '(orderless)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
 
@@ -343,6 +337,8 @@
 
  					; corfu autocompletion
 (use-package corfu
+  :straight (corfu :files (:defaults "extensions/*")
+                   :includes (corfu-info corfu-history))
   :custom
   (corfu-cycle nil)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto nil)                 ;; Enable auto completion
@@ -364,6 +360,8 @@
   (tab-always-indent 'complete)
   (completion-cycle-threshold nil)
 
+  (setq corfu-popupinfo-delay 0)
+
   :bind
   ;; Another key binding can be used, such as S-SPC.
   (:map corfu-map
@@ -379,6 +377,7 @@
   
   :init
   (global-corfu-mode)
+  (corfu-popupinfo-mode)
 
   :config
 
@@ -390,13 +389,14 @@
       (corfu-mode 1)))
   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1))
 
+
 (use-package kind-icon
   :after corfu
-  :disabled
+  ;:disabled
   :custom
-  (kind-icon-use-icons t)
+  (kind-icon-use-icons nil)
   (kind-icon-default-face 'corfu-default) ; Have background color be the same as `corfu' face background
-  (kind-icon-blend-background nil)  ; Use midpoint color between foreground and background colors ("blended")?
+  (kind-icon-blend-background t)  ; Use midpoint color between foreground and background colors ("blended")?
   (kind-icon-blend-frac 0.08)
 
   ;; NOTE 2022-02-05: `kind-icon' depends `svg-lib' which creates a cache
@@ -406,6 +406,7 @@
   (svg-lib-icons-dir (no-littering-expand-var-file-name "svg-lib/cache/")) ; Change cache dir
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter) ; Enable `kind-icon'
+
 
   ;; Add hook to reset cache so the icon colors match my theme
   ;; NOTE 2022-02-05: This is a hook which resets the cache whenever I switch
@@ -417,6 +418,9 @@
   (add-hook 'kb/themes-hooks #'(lambda () (interactive) (kind-icon-reset-cache))))
 
 (use-package cape
+  :straight (cape :files (:defaults "*")
+                  :includes (cape-keyword cape-char))
+
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
   :bind (("C-c p p" . completion-at-point) ;; capf
@@ -441,15 +445,26 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
   ;;(add-to-list 'completion-at-point-functions #'cape-history)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
-  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
-  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
-  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  ;; ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+  ;; ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;; ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
   (add-to-list 'completion-at-point-functions #'cape-abbrev)
   (add-to-list 'completion-at-point-functions #'cape-ispell)
-  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+  ;; ;;(add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-symbol)
-  ;;(add-to-list 'completion-at-point-functions #'cape-line)
-  )
+  ;; ;;(add-to-list 'completion-at-point-functions #'cape-line)
+
+  (setq cape-dabbrev-check-other-buffers 'some)
+
+  ; add as hook because of verilog-mode replacing locally completion functions.
+  :hook
+  (verilog-mode . (lambda()
+					;(delete t completion-at-point-functions)
+		    (add-to-list 'completion-at-point-functions #'cape-keyword)
+
+		    (add-to-list 'completion-at-point-functions #'cape-file)
+		    (add-to-list 'completion-at-point-functions #'cape-dabbrev))))
+
 ;;;;;;;;;;;;;;;;
 
 (use-package projectile
@@ -555,7 +570,6 @@
 
 
 (use-package verilog-mode
-  :ensure t
   :init
   (setq verilog-indent-spaces 4
         verilog-indent-level             verilog-indent-spaces
@@ -566,7 +580,7 @@
         verilog-case-indent              verilog-indent-spaces
         verilog-auto-newline             'nil
         verilog-auto-indent-on-newline   t
-        verilog-tab-always-indent        'nil
+        verilog-tab-always-indent        t
         verilog-auto-endcomments         t
         verilog-minimum-comment-distance 10
         verilog-indent-begin-after-if    'nil
@@ -581,13 +595,14 @@
          ; number
          ("\\b[0-9]+\\b" . font-lock-string-face)
 
-         ("[+\\*/:&^\\|-]" . font-lock-type-face)
-         ("[!~]" . font-lock-warning-face)          
+         ("[+=<>%\\*/:&^\\|-]" . font-lock-type-face)
+         ("[!~]" . font-lock-warning-face)
+	 ("\\[\s*[$]\s*\\]" . font-lock-type-face)
          )))
   :hook (verilog-mode . verilog-extend-font-lock)
   )
 
-
+;  [ $ ]
 
 (use-package emacs ; without this operandi theme is loaded.
   :init
@@ -644,12 +659,6 @@
 
 ;; ;; (add-hook 'prog-mode-hook 'mdc-prog-mode-hook)
 
-;; ;smartparens
-;; (add-to-list 'load-path "~/.emacs.d/lisp/smartparens-1.10.1")
-;; ;(require 'smartparens)
-;; (require 'smartparens-config)
-;; (add-hook 'prog-mode-hook 'smartparens-mode)
-
 
 ;; (require 'stupid-indent-mode)
 ;; (setq stupid-indent-level indent-level)
@@ -691,3 +700,48 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+
+(use-package emacs
+  :after cape-keyword
+  :init
+  (add-to-list 'cape-keyword-list
+				 '(verilog-mode
+				   "and" "buf" "bufif0" "bufif1" "cmos" "defparam" "event" "genvar" "highz0" "highz1" "inout" "input"
+				   "integer" "localparam" "mailbox" "nand" "nmos" "nor" "not" "notif0" "notif1" "or"
+				   "output" "parameter" "pmos" "pull0" "pull1" "pulldown" "pullup" "rcmos" "real" "realtime"
+				   "reg" "rnmos" "rpmos" "rtran" "rtranif0" "rtranif1" "semaphore" "signed" "specparam" "strong0"
+				   "strong1" "supply" "supply0" "supply1" "time" "tran" "tranif0" "tranif1" "tri" "tri0" "tri1" "triand"
+				   "trior" "trireg" "unsigned" "uwire" "vectored" "wand" "weak0" "weak1" "wire" "wor" "xnor" "xor"
+				   "bit" "byte" "chandle" "const" "enum" "int" "logic" "longint" "packed" "ref" "shortint" "shortreal"
+				   "static" "string" "struct" "type" "typedef" "union" "var" "interconnect" "nettype" "above" "abs"
+				   "absdelay" "abstol" "ac_stim" "access" "acos" "acosh" "aliasparam"
+				   "analog" "analysis" "asin" "asinh" "atan" "atan2" "atanh" "branch" "ceil" "connect"
+				   "connectmodule" "connectrules" "continuous" "cos" "cosh" "ddt" "ddt_nature" "ddx" "discipline"
+				   "discrete" "domain" "driver_update" "endconnectmodule" "endconnectrules" "enddiscipline"
+				   "endnature" "endparamset" "exclude" "exp" "final_step" "flicker_noise" "floor" "flow"
+				   "from" "ground" "hypot" "idt" "idt_nature" "idtmod" "inf" "initial_step" "laplace_nd"
+				   "laplace_np" "laplace_zd" "laplace_zp" "last_crossing" "limexp" "ln" "log" "max"
+				   "merged" "min" "nature" "net_resolution" "noise_table" "paramset" "potential"
+				   "pow" "resolveto" "sin" "sinh" "slew" "split" "sqrt" "tan" "tanh" "timer"
+				   "transition" "units" "white_noise" "wreal" "zi_nd" "zi_np" "zi_zd" "zi_zp"
+				   "always" "assign" "automatic" "case" "casex" "casez" "cell" "config" "deassign"
+				   "default" "design" "disable" "edge" "else" "endcase" "endconfig" "endfunction"
+				   "endgenerate" "endmodule" "endprimitive" "endspecify" "endtable" "endtask" "for"
+				   "force" "forever" "fork" "function" "generate" "if" "ifnone" "incdir" "include"
+				   "initial" "instance" "join" "large" "liblist" "library" "macromodule" "medium"
+				   "module" "negedge" "noshowcancelled" "posedge" "primitive" "pulsestyle_ondetect"
+				   "pulsestyle_onevent" "release" "repeat" "scalared" "showcancelled" "small" "specify"
+				   "strength" "table" "task" "use" "wait" "while" "alias" "always_comb" "always_ff"
+				   "always_latch" "assert" "assume" "analog" "before" "bind" "bins" "binsof" "break"
+				   "class" "clocking" "constraint" "context" "continue" "cover" "covergroup" "coverpoint"
+				   "cross" "dist" "do" "endclass" "endclocking" "endgroup" "endinterface" "endpackage"
+				   "endprogram" "endproperty" "endsequence" "expect" "export" "extends" "extern" "final"
+				   "first_match" "foreach" "forkjoin" "iff" "ignore_bins" "illegal_bins" "import" "inside"
+				   "interface" "intersect" "join_any" "join_none" "local" "matches" "modport" "new" "null"
+				   "package" "priority" "program" "property" "protected" "pure" "rand" "randc" "randcase"
+				   "randsequence" "return" "sequence" "solve" "super" "tagged" "this" "throughout" "timeprecision"
+				   "timeunit" "unique" "virtual" "void" "wait_order" "wildcard" "with" "within" "accept_on"
+				   "checker" "endchecker" "eventually" "global" "implies" "let" "nexttime" "reject_on" "restrict"
+				   "s_always" "s_eventually" "s_nexttime" "s_until" "s_until_with" "strong" "sync_accept_on"
+				   "sync_reject_on" "unique0" "until" "until_with" "untyped" "weak" "implements" "soft" "begin" "end")))
