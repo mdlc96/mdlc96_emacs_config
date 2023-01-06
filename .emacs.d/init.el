@@ -81,6 +81,7 @@
   :bind
   ("C-c C-q" . comment-or-uncomment-region))
 
+; manage recent opened files
 (use-package recentf
   :after no-littering
   :custom
@@ -127,6 +128,7 @@
   :hook (prog-mode . ws-butler-mode)
   )
 
+; template system for coding.
 (use-package yasnippet
   :ensure t
   :init
@@ -134,6 +136,17 @@
   (setq yas-snippet-dirs
       '("~/.emacs.d/snippets"))
   (yas-global-mode 1))
+
+; highlight indentation.
+(use-package highlight-indent-guides
+  :config
+  (setq highlight-indent-guides-method 'character
+	highlight-indent-guides-responsive 'stack
+	highlight-indent-guides-auto-character-face-perc 30
+	highlight-indent-guides-delay 0.25)
+
+  :hook
+  (prog-mode . highlight-indent-guides-mode))
 
 ;; vertico
 ;; Enable vertico
@@ -482,10 +495,6 @@
   (require 'citre-config)
   ;; Bind your frequently used commands.  Alternatively, you can define them
   ;; in `citre-mode-map' so you can only use them when `citre-mode' is enabled.
-  (global-set-key (kbd "C-x c j") 'citre-jump)
-  (global-set-key (kbd "C-x c J") 'citre-jump-back)
-  (global-set-key (kbd "C-x c p") 'citre-ace-peek)
-  (global-set-key (kbd "C-x c u") 'citre-update-this-tags-file)
   :config
   (setq
    ;; Set these if readtags/ctags is not in your PATH.
@@ -506,7 +515,13 @@
    ;; By default, when you open any file, and a tags file can be found for it,
    ;; `citre-mode' is automatically enabled.  If you only want this to work for
    ;; certain modes (like `prog-mode'), set it like this.
-   citre-auto-enable-citre-mode-modes '(prog-mode)))
+   citre-auto-enable-citre-mode-modes '(prog-mode))
+
+  :bind (:map citre-mode-map
+  ("M-." . citre-jump)
+  ("C-M-." . citre-jump-back)
+  ("M-/" . citre-ace-peek)
+  ("C-x c u" . citre-update-this-tags-file)))
 
 
 					; bookmarks
@@ -597,20 +612,18 @@
 
          ("[+=<>%\\*/:&^\\|-]" . font-lock-type-face)
          ("[!~]" . font-lock-warning-face)
-	 ("\\[\s*[$]\s*\\]" . font-lock-type-face)
+					;("\\[\s*[$]\s*\\]" 1 font-lock-type-face)
+	 ("\\[\s*\\([$]\\|[[:alnum:]]+\\)\s*\\]" 1 font-lock-builtin-face)
+	 ;("foreach\s*(\s*[[:alnum:]]+\s*[\\([[:alnum:]]+,\\)*\\(\s*\\([[:alnum:]]+\\)\s*,*\\)\s*\\]\s*)" 2 font-lock-builtin-face)
          )))
   :hook (verilog-mode . verilog-extend-font-lock)
   )
-
-;  [ $ ]
 
 (use-package emacs ; without this operandi theme is loaded.
   :init
   :config
   ;; Load the theme of your choice.
   (load-theme 'modus-vivendi :noconfirm))
-
-
 
 ;;; doom modeline
 (use-package doom-modeline
@@ -745,3 +758,19 @@
 				   "checker" "endchecker" "eventually" "global" "implies" "let" "nexttime" "reject_on" "restrict"
 				   "s_always" "s_eventually" "s_nexttime" "s_until" "s_until_with" "strong" "sync_accept_on"
 				   "sync_reject_on" "unique0" "until" "until_with" "untyped" "weak" "implements" "soft" "begin" "end")))
+
+
+(use-package xah-fly-keys
+  :disabled
+  :config (xah-fly-keys-set-layout "qwerty"))
+
+(use-package lsp-mode
+  :disabled
+  :config
+  (add-to-list 'lsp-language-id-configuration '(verilog-mode . "verilog"))
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection "verible-verilog-ls")
+                    :major-modes '(verilog-mode)
+                    :server-id 'verible-ls))
+
+  :hook (verilog-mode . lsp))

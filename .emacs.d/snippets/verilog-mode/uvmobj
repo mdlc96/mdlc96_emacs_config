@@ -1,0 +1,20 @@
+# name: uvm_object
+# key: uvmobj
+# group: verilog
+# --
+class ${1:class_name} extends ${2:uvm_object};
+      `uvm_object_utils($1)
+
+      function new(string name = "$1");
+      	       super.new(name);
+      endfunction: new
+
+      function void build_phase(uvm_phase phase);
+      	       super.new(phase);
+	       $0
+      endfunction: build_phase
+
+      task run_phase(uvm_phase phase);
+
+      endtask: run_phase
+endclass: $1
