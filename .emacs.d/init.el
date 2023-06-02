@@ -58,6 +58,7 @@
         indent-tabs-mode nil ; always use spaces, not tabs
         enable-recursive-minibuffers t
 
+
 	compilation-scroll-output t
 	compilation-always-kill t
 	;make-backup-files nil "Do not make backup files on save buffer."
@@ -66,20 +67,19 @@
 	require-final-newline t) ;Ends file with a newline.
 					; find undo management if needed
 					;and package to manage selection of words...
-
+  (tool-bar-mode -1)
   (show-paren-mode t)
   (global-display-line-numbers-mode)
+  (setq visible-bell 1)
 
-  ;set frame font
-  ;; (cond
-  ;;  ((find-font (font-spec :name "JetBrains Mono NL"))
-  ;;   (set-frame-font "JetBrains Mono NL 14" nil t)))
   (cond
-   ((find-font (font-spec :name "IBM Plex Mono"))
-    (set-frame-font "IBM Plex Mono 14" nil t)))
+   ((find-font (font-spec :name "Fira Code"))
+    (set-frame-font "Fira Code 14" nil t)))
 
   :bind
-  ("C-c C-q" . comment-or-uncomment-region))
+  ("C-c C-q" . comment-or-uncomment-region)
+  ("M-*" . pop-tag-mark)
+  ("C-M-\\" . indent-region))
 
 ; manage recent opened files
 (use-package recentf
@@ -87,8 +87,7 @@
   :custom
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory)
-  (recentf-mode)
-  )
+  (recentf-mode))
 
 ;; easy window navigation
 (use-package ace-window
@@ -113,12 +112,12 @@
 ; navigate and highlight keywords in the code
 (use-package symbol-overlay
   :ensure t
-  :bind (("M-i"  . symbol-overlay-put)
-         ("M-n"  . symbol-overlay-switch-forward)
-         ("M-p"  . symbol-overlay-switch-backward)
-         ("<f7>" . symbol-overlay-mode)
-         ("<f8>" . symbol-overlay-remove-all)
-         )
+  :bind
+  ("M-i"  . symbol-overlay-put)
+  ("M-n"  . symbol-overlay-switch-forward)
+  ("M-p"  . symbol-overlay-switch-backward)
+  ("<f7>" . symbol-overlay-mode)
+  ("<f9>" . symbol-overlay-remove-all)
   :hook (prog-mode . symbol-overlay-mode)
   )
 
@@ -137,16 +136,20 @@
       '("~/.emacs.d/snippets"))
   (yas-global-mode 1))
 
+(use-package flycheck
+  :ensure t
+  :hook
+  (cperl-mode-hook . flycheck-mode)
+
+  )
+
 ; highlight indentation.
 (use-package highlight-indent-guides
   :config
-  (setq highlight-indent-guides-method 'character
+  (setq highlight-indent-guides-method 'bitmap
 	highlight-indent-guides-responsive 'stack
 	highlight-indent-guides-auto-character-face-perc 30
-	highlight-indent-guides-delay 0.25)
-
-  :hook
-  (prog-mode . highlight-indent-guides-mode))
+	highlight-indent-guides-delay 0.25))
 
 ;; vertico
 ;; Enable vertico
@@ -155,23 +158,11 @@
                      :includes (vertico-mouse vertico-directory))
   :init
   (vertico-mode)
-  
-  ;; Different scroll margin
-  ;; (setq vertico-scroll-margin 0)
-  ;; Show more candidates
-  ;; (setq vertico-count 20)
-
-  ;; Grow and shrink the Vertico minibuffer
-  ;; (setq vertico-resize t)
-
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  ;; (setq vertico-cycle t)
-
   (vertico-mouse-mode)
 
   :bind (:map vertico-map
 	      ("<tab>" . vertico-directory-enter)
-              ;("\t" . vertico-directory-enter) ; \t or \r
+              ("\t" . vertico-directory-enter) ; \t or \r
               ("\d" . vertico-directory-delete-char)
               ("\M-\d" . vertico-directory-delete-word))
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
@@ -189,15 +180,9 @@
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
   ;; Either bind `marginalia-cycle' globally or only in the minibuffer
-  :bind (("M-A" . marginalia-cycle)
-         :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
-
-  ;; The :init configuration is always executed (Not lazy!)
+  :bind (:map minibuffer-local-map
+              ("M-A" . marginalia-cycle))
   :init
-
-  ;; Must be in the :init section of use-package such that the mode gets
-  ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
 
 
@@ -205,6 +190,8 @@
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (;; C-c bindings (mode-specific-map)
+	 ("C-s" . consult-line)
+	 ;check these ones below
          ("C-c h" . consult-history)
          ("C-c m" . consult-mode-command)
          ("C-c k" . consult-kmacro)
@@ -351,7 +338,7 @@
  					; corfu autocompletion
 (use-package corfu
   :straight (corfu :files (:defaults "extensions/*")
-                   :includes (corfu-info corfu-history))
+                   :includes (corfu-info corfu-history corfu-popupinfo))
   :custom
   (corfu-cycle nil)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto nil)                 ;; Enable auto completion
@@ -373,20 +360,21 @@
   (tab-always-indent 'complete)
   (completion-cycle-threshold nil)
 
-  (setq corfu-popupinfo-delay 0)
+  (corfu-popupinfo-delay 0.25)
 
-  :bind
-  ;; Another key binding can be used, such as S-SPC.
-  (:map corfu-map
-        ("C-SPC" . corfu-insert-separator)
-        ([return] . corfu-complete) ;corfu-insert?
-         ("C-n" . corfu-next)
-            ("C-p" . corfu-previous)
-            ("<escape>" . corfu-quit)
-            ("<return>" . corfu-insert)
-            ("M-d" . corfu-show-documentation)
-            ("M-l" . corfu-show-location)
-            ("C-SPC" . corfu-insert-separator))
+  :bind (
+	 ("M-/" . completion-at-point)
+	 ;; Another key binding can be used, such as S-SPC.
+	 (:map corfu-map
+               ("C-SPC" . corfu-insert-separator)
+               ([return] . corfu-complete) ;corfu-insert?
+               ("C-n" . corfu-next)
+               ("C-p" . corfu-previous)
+               ("<escape>" . corfu-quit)
+               ("<return>" . corfu-insert)
+               ("M-d" . corfu-show-documentation)
+               ("M-l" . corfu-show-location)
+               ("C-SPC" . corfu-insert-separator)))
   
   :init
   (global-corfu-mode)
@@ -402,15 +390,19 @@
       (corfu-mode 1)))
   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1))
 
+(use-package svg-lib)
+
 
 (use-package kind-icon
   :after corfu
   ;:disabled
   :custom
-  (kind-icon-use-icons nil)
+  (kind-icon-use-icons t)
   (kind-icon-default-face 'corfu-default) ; Have background color be the same as `corfu' face background
   (kind-icon-blend-background t)  ; Use midpoint color between foreground and background colors ("blended")?
   (kind-icon-blend-frac 0.08)
+  (kind-icon-default-style
+   '(:padding 0 :stroke 0 :margin -1 :radius 0 :height 0.5 :scale 1.0))
 
   ;; NOTE 2022-02-05: `kind-icon' depends `svg-lib' which creates a cache
   ;; directory that defaults to the `user-emacs-directory'. Here, I change that
@@ -454,14 +446,13 @@
          ("C-c p r" . cape-rfc1345))
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  ;(add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
   ;;(add-to-list 'completion-at-point-functions #'cape-history)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   ;; ;;(add-to-list 'completion-at-point-functions #'cape-tex)
   ;; ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
   ;; ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-  (add-to-list 'completion-at-point-functions #'cape-abbrev)
   (add-to-list 'completion-at-point-functions #'cape-ispell)
   ;; ;;(add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-symbol)
@@ -474,7 +465,6 @@
   (verilog-mode . (lambda()
 					;(delete t completion-at-point-functions)
 		    (add-to-list 'completion-at-point-functions #'cape-keyword)
-
 		    (add-to-list 'completion-at-point-functions #'cape-file)
 		    (add-to-list 'completion-at-point-functions #'cape-dabbrev))))
 
@@ -486,7 +476,7 @@
   (projectile-mode +1)
   :bind (:map projectile-mode-map
               ("s-p" . projectile-command-map)
-              ("C-c p" . projectile-command-map)))
+              ("C-c j" . projectile-command-map)))
 
 (use-package citre
   :defer t
@@ -498,30 +488,31 @@
   :config
   (setq
    ;; Set these if readtags/ctags is not in your PATH.
-   citre-readtags-program "/path/to/readtags"
-   citre-ctags-program "/path/to/ctags"
+   citre-readtags-program "~/bin/readtags"
+   citre-ctags-program "~bin/ctags"
    ;; Set these if gtags/global is not in your PATH (and you want to use the
    ;; global backend)
-   citre-gtags-program "/path/to/gtags"
-   citre-global-program "/path/to/global"
+   citre-gtags-program "~/bin/gtags"
+   citre-global-program "~/bin/global"
    ;; Set this if you use project management plugin like projectile.  It's
    ;; used for things like displaying paths relatively, see its docstring.
    citre-project-root-function #'projectile-project-root
    ;; Set this if you want to always use one location to create a tags file.
    citre-default-create-tags-file-location 'global-cache
    ;; See the "Create tags file" section above to know these options
-   citre-use-project-root-when-creating-tags t
-   citre-prompt-language-for-ctags-command t
+   citre-use-project-root-when-creating-tags nil
+   citre-prompt-language-for-ctags-command nil
    ;; By default, when you open any file, and a tags file can be found for it,
    ;; `citre-mode' is automatically enabled.  If you only want this to work for
    ;; certain modes (like `prog-mode'), set it like this.
    citre-auto-enable-citre-mode-modes '(prog-mode))
 
   :bind (:map citre-mode-map
-  ("M-." . citre-jump)
-  ("C-M-." . citre-jump-back)
-  ("M-/" . citre-ace-peek)
-  ("C-x c u" . citre-update-this-tags-file)))
+	      ("M-." . citre-jump)
+	      ("M-*" . citre-jump-back)
+	      ("C-M-." . citre-peek)
+	      ;("M-/" . citre-ace-peek)
+	      ("C-x c u" . citre-update-this-tags-file)))
 
 
 					; bookmarks
@@ -585,39 +576,75 @@
 
 
 (use-package verilog-mode
-  :init
+  :config
   (setq verilog-indent-spaces 4
-        verilog-indent-level             verilog-indent-spaces
-        verilog-indent-level-module      verilog-indent-spaces
-        verilog-indent-level-declaration verilog-indent-spaces
-        verilog-indent-level-behavioral  verilog-indent-spaces
-        verilog-indent-level-directive   1
-        verilog-case-indent              verilog-indent-spaces
-        verilog-auto-newline             'nil
-        verilog-auto-indent-on-newline   t
-        verilog-tab-always-indent        t
-        verilog-auto-endcomments         t
-        verilog-minimum-comment-distance 10
-        verilog-indent-begin-after-if    'nil
-        verilog-indent-lists             'nil
-        verilog-auto-lineup              'declarations)
-  
+        verilog-indent-level              verilog-indent-spaces
+        verilog-indent-level-module       verilog-indent-spaces
+        verilog-indent-level-declaration  verilog-indent-spaces
+        verilog-indent-level-behavioral   verilog-indent-spaces
+        verilog-indent-level-directive    1
+        verilog-case-indent               verilog-indent-spaces
+        verilog-auto-newline              'nil
+        verilog-auto-indent-on-newline    t
+        verilog-tab-always-indent         t
+        verilog-auto-endcomments          t
+        verilog-minimum-comment-distance  10
+        verilog-indent-begin-after-if     'nil
+        verilog-indent-lists              t ; 'nil
+        verilog-auto-lineup               'all;'declarations)
+	verilog-align-ifelse              t
+	verilog-highlight-p1800-keywords  t
+	verilog-indent-declaration-macros t)
+
+  ; function I wrote to highlight nice things not highlighted by default.
   (defun verilog-extend-font-lock ()
-    (font-lock-add-keywords nil '(    
-         ; Valid hex number (will highlight invalid suffix though)
-         ("'[b o h d][[:xdigit:]]+\\b" . font-lock-warning-face)
+    (font-lock-add-keywords nil '(
+                                        ; Valid hex number (will highlight invalid suffix though)
+				  ("'[b o h d][[:xdigit:]]+\\b" . font-lock-warning-face)
 
-         ; number
-         ("\\b[0-9]+\\b" . font-lock-string-face)
+                                        ; number
+				  ("\\b[0-9]+\\b" . font-lock-string-face)
 
-         ("[+=<>%\\*/:&^\\|-]" . font-lock-type-face)
-         ("[!~]" . font-lock-warning-face)
-					;("\\[\s*[$]\s*\\]" 1 font-lock-type-face)
-	 ("\\[\s*\\([$]\\|[[:alnum:]]+\\)\s*\\]" 1 font-lock-builtin-face)
-	 ;("foreach\s*(\s*[[:alnum:]]+\s*[\\([[:alnum:]]+,\\)*\\(\s*\\([[:alnum:]]+\\)\s*,*\\)\s*\\]\s*)" 2 font-lock-builtin-face)
-         )))
-  :hook (verilog-mode . verilog-extend-font-lock)
-  )
+                                        ;negations symbols
+				  ("\\(\\[~]\\)\\|\\(\\!=*\\)" . font-lock-warning-face)
+
+                                        ; operation symbols and commas
+				  ("[+=<>%\\*/:&^\\|;,.-]" . font-lock-type-face)
+
+                                        ;highlight things inside parenthesis []
+				  ("\\[\s*\\([$]\\|[[:alnum:]]+\\)\s*\\]" 1 font-lock-builtin-face)
+                                        ;highlight #(thing) even if attached to a word.
+                                        ;example uvm_config_db#(uvm_bitstream_t)
+				  ("#([a-z_A-Z0-9]+)?" . font-lock-type-face))))
+  :bind (:map verilog-mode-map
+	      ("C-{" . verilog-beg-of-defun)
+	      ("C-}" . verilog-end-of-defun))
+  :hook (verilog-mode . verilog-extend-font-lock))
+
+(use-package cperl-mode
+  :ensure t
+  :init ; maybe put hook in init?
+  :mode ("\.pl$" . cperl-mode)
+  :config
+  ;; cperl-mode
+  (setq cperl-indent-level 4
+        cperl-highlight-variables-indiscriminately t
+	cperl-electric-parens nil ; below this there are things from internet. check them
+        cperl-continued-statement-offset 4
+        cperl-close-paren-offset -4
+        cperl-label-offset -4
+        cperl-comment-column 40
+        cperl-indent-parens-as-block t
+        cperl-tab-always-indent nil
+        cperl-font-lock t)
+  (cperl-set-style "PerlStyle")
+  :hook
+  (smartparens-enabled-hook . (lambda() (define-key cperl-mode-map "{" nil)))
+  (smartparens-disabled-hook . (lambda() (define-key cperl-mode-map "{" 'cperl-electric-lbrace))))
+
+; these have to be improved; maybe use only font lock without indentation... don't know.
+(add-to-list 'auto-mode-alist '("\\.f" . verilog-mode))
+(add-to-list 'auto-mode-alist '("\\.vsif[h]" . c-mode))
 
 (use-package emacs ; without this operandi theme is loaded.
   :init
@@ -627,14 +654,80 @@
 
 ;;; doom modeline
 (use-package doom-modeline
-  :ensure t
-  :hook (after-init . doom-modeline-mode))
+  :hook (after-init . doom-modeline-mode)
+  :custom
+  (doom-modeline-height 25)
+  (doom-modeline-bar-width 1)
+  (doom-modeline-icon nil)
+  (doom-modeline-window-width-limit nil)
+  (doom-modeline-major-mode-icon nil)
+  (doom-modeline-major-mode-color-icon nil)
+  (doom-modeline-buffer-file-name-style 'auto)
+  (doom-modeline-buffer-state-icon nil)
+  (doom-modeline-buffer-modification-icon nil)
+  (doom-modeline-minor-modes nil)
+  (doom-modeline-enable-word-count nil)
+  (doom-modeline-buffer-encoding nil)
+  (doom-modeline-modal t)
+  (doom-modeline-indent-info nil)
+  (doom-modeline-checker-simple-format t)
+  (doom-modeline-vcs-max-length 12)
+  (doom-modeline-env-version nil)
+  (doom-modeline-irc-stylize 'identity)
+  (doom-modeline-github-timer nil)
+  (doom-modeline-gnus-timer nil))
 
-;; (use-package all-the-icons
-;;   :ensure t)
+
+(use-package shrink-whitespace
+  :ensure t
+  :bind
+  ("M-\\" . shrink-whitespace))
+
+(use-package all-the-icons
+  :ensure t
+  :config
+  (setq bdf-directory-list '("~/.emacs.d/fonts/"))
+;; Use 'prepend for the NS and Mac ports or Emacs will crash.
+  (set-fontset-font t 'unicode (font-spec :family "all-the-icons") nil 'append)
+  (set-fontset-font t 'unicode (font-spec :family "file-icons") nil 'append)
+  (set-fontset-font t 'unicode (font-spec :family "Material Icons") nil 'append)
+  (set-fontset-font t 'unicode (font-spec :family "github-octicons") nil 'append)
+  (set-fontset-font t 'unicode (font-spec :family "FontAwesome") nil 'append)
+  (set-fontset-font t 'unicode (font-spec :family "Weather Icons") nil 'append))
+
+(use-package all-the-icons-completion
+  :after (all-the-icons marginalia)
+  :ensure t
+  :init
+  (all-the-icons-completion-mode)
+  :hook
+  (marginalia-mode-hook . all-the-icons-completion-marginalia-setup))
+
 
 (use-package p4
   :ensure t)
+
+(use-package vterm
+  :config
+  (setq vterm-max-scrollback 1000000)
+
+  :bind (:map vterm-mode-map
+	      ("C-y" . vterm-yank))
+  :hook
+  (vterm-mode-hook . (lambda() (display-line-numbers-mode -1))))
+
+(use-package stupid-indent-mode
+  :init
+  (setq stupid-indent-level 4)
+  :hook
+  (sh-mode-hook . (lambda() stupid-indent-mode 1)))
+
+(use-package which-func
+  :config
+  (setq which-func-unknown "Global")
+  :custom
+  (which-function-mode 1))
+
 
 ;;;;;
 
@@ -760,6 +853,44 @@
 				   "sync_reject_on" "unique0" "until" "until_with" "untyped" "weak" "implements" "soft" "begin" "end")))
 
 
+(use-package ligature)
+
+(use-package ligature
+  :load-path "path-to-ligature-repo"
+  :config
+  ;; Enable the "www" ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+
+  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+                                     ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+                                     "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+                                     "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+                                     "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+                                     "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+                                     "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+                                     "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+                                     "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+                                     "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"
+				     "|->" "|=>"))
+
+  (ligature-set-ligatures 'vterm-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+					":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+					"-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+					"#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+					"/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+					"++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+					"=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+					"<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+					"<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+					"<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"
+					"|->" "|=>"))
+  (global-ligature-mode t))
+
+(use-package desktop
+  :ensure nil
+  :config
+  (desktop-save-mode 1))
+
 (use-package xah-fly-keys
   :disabled
   :config (xah-fly-keys-set-layout "qwerty"))
@@ -774,3 +905,28 @@
                     :server-id 'verible-ls))
 
   :hook (verilog-mode . lsp))
+
+
+
+;; (use-package verilog-ext-mode
+
+;;   :demand
+;;   :hook ((verilog-mode . verilog-ext-which-func))
+;;   :config
+;;   (verilog-ext-mode-setup))
+
+(use-package verilog-ext
+ :straight (:host github :repo "gmlarumbe/verilog-ext")
+ :after verilog-mode
+ :hook ((verilog-mode . verilog-ext-which-func)
+	(verilog-mode . verilog-ext-hs-setup))
+ ;:config (verilog-ext-mode-setup)
+ )
+
+
+
+
+(straight-use-package 'tree-sitter)
+(straight-use-package 'tree-sitter-langs)
+(require 'tree-sitter)
+(require 'tree-sitter-langs)
