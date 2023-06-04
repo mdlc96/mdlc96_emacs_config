@@ -30,20 +30,20 @@
 ; avoids emacs generating littering files all over the place.
 (use-package no-littering
   :ensure t
-  :custom
+  :config
   (setq auto-save-file-name-transforms
-	`((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
 ;modus themes need to be loaded as soon as possible.
 ;then load one of them with use-package emacs, if this theme is desired
 (use-package modus-themes
   :init
   (setq modus-themes-common-palette-overrides '((comment yellow-cooler)
-					;(string green-cooler)
-						(bg-paren-match bg-magenta-intense)
-						(bg-region bg-ochre) ; try to replace `bg-ochre' with `bg-lavender', `bg-sage'
-						(fg-region unspecified))
-	modus-themes-italic-constructs t)
+                                        ;(string green-cooler)
+                                                (bg-paren-match bg-magenta-intense)
+                                                (bg-region bg-ochre) ; try to replace `bg-ochre' with `bg-lavender', `bg-sage'
+                                                (fg-region unspecified))
+        modus-themes-italic-constructs t)
   :config
   ;; Load the theme of your choice:
   ;(load-theme 'modus-vivendi :noconfirm)
@@ -53,29 +53,28 @@
 (use-package emacs
   :init
   (setq inhibit-startup-screen t
-	column-number-mode t ; show column number
+        column-number-mode t ; show column number
         line-number-mode t ; show line number
         indent-tabs-mode nil ; always use spaces, not tabs
         enable-recursive-minibuffers t
 
 
-	compilation-scroll-output t
-	compilation-always-kill t
-	;make-backup-files nil "Do not make backup files on save buffer."
-	;auto-save-default nil "Do not auto-save of every file-visiting buffer."
-	create-lockfiles  nil ;Do not use lock-files.
-	require-final-newline t) ;Ends file with a newline.
-					; find undo management if needed
-					;and package to manage selection of words...
-  (tool-bar-mode -1)
+        compilation-scroll-output t
+        compilation-always-kill t
+        ;make-backup-files nil "Do not make backup files on save buffer."
+        ;auto-save-default nil "Do not auto-save of every file-visiting buffer."
+        create-lockfiles  nil ;Do not use lock-files.
+        require-final-newline t) ;Ends file with a newline.
+                                        ; find undo management if needed
+                                        ;and package to manage selection of words...
   (show-paren-mode t)
   (global-display-line-numbers-mode)
   (setq visible-bell 1)
+  (tool-bar-mode -1)
 
   (cond
    ((find-font (font-spec :name "Fira Code"))
     (set-frame-font "Fira Code 14" nil t)))
-
   :bind
   ("C-c C-q" . comment-or-uncomment-region)
   ("M-*" . pop-tag-mark)
@@ -147,9 +146,9 @@
 (use-package highlight-indent-guides
   :config
   (setq highlight-indent-guides-method 'bitmap
-	highlight-indent-guides-responsive 'stack
-	highlight-indent-guides-auto-character-face-perc 30
-	highlight-indent-guides-delay 0.25))
+        highlight-indent-guides-responsive 'stack
+        highlight-indent-guides-auto-character-face-perc 30
+        highlight-indent-guides-delay 0.25))
 
 ;; vertico
 ;; Enable vertico
@@ -161,7 +160,7 @@
   (vertico-mouse-mode)
 
   :bind (:map vertico-map
-	      ("<tab>" . vertico-directory-enter)
+              ("<tab>" . vertico-directory-enter)
               ("\t" . vertico-directory-enter) ; \t or \r
               ("\d" . vertico-directory-delete-char)
               ("\M-\d" . vertico-directory-delete-word))
@@ -190,8 +189,8 @@
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (;; C-c bindings (mode-specific-map)
-	 ("C-s" . consult-line)
-	 ;check these ones below
+         ("C-s" . consult-line)
+         ;check these ones below
          ("C-c h" . consult-history)
          ("C-c m" . consult-mode-command)
          ("C-c k" . consult-kmacro)
@@ -335,7 +334,7 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
- 					; corfu autocompletion
+                                        ; corfu autocompletion
 (use-package corfu
   :straight (corfu :files (:defaults "extensions/*")
                    :includes (corfu-info corfu-history corfu-popupinfo))
@@ -363,9 +362,9 @@
   (corfu-popupinfo-delay 0.25)
 
   :bind (
-	 ("M-/" . completion-at-point)
-	 ;; Another key binding can be used, such as S-SPC.
-	 (:map corfu-map
+         ("M-/" . completion-at-point)
+         ;; Another key binding can be used, such as S-SPC.
+         (:map corfu-map
                ("C-SPC" . corfu-insert-separator)
                ([return] . corfu-complete) ;corfu-insert?
                ("C-n" . corfu-next)
@@ -463,10 +462,10 @@
   ; add as hook because of verilog-mode replacing locally completion functions.
   :hook
   (verilog-mode . (lambda()
-					;(delete t completion-at-point-functions)
-		    (add-to-list 'completion-at-point-functions #'cape-keyword)
-		    (add-to-list 'completion-at-point-functions #'cape-file)
-		    (add-to-list 'completion-at-point-functions #'cape-dabbrev))))
+                                        ;(delete t completion-at-point-functions)
+                    (add-to-list 'completion-at-point-functions #'cape-keyword)
+                    (add-to-list 'completion-at-point-functions #'cape-file)
+                    (add-to-list 'completion-at-point-functions #'cape-dabbrev))))
 
 ;;;;;;;;;;;;;;;;
 
@@ -508,14 +507,14 @@
    citre-auto-enable-citre-mode-modes '(prog-mode))
 
   :bind (:map citre-mode-map
-	      ("M-." . citre-jump)
-	      ("M-*" . citre-jump-back)
-	      ("C-M-." . citre-peek)
-	      ;("M-/" . citre-ace-peek)
-	      ("C-x c u" . citre-update-this-tags-file)))
+              ("M-." . citre-jump)
+              ("M-*" . citre-jump-back)
+              ("C-M-." . citre-peek)
+              ;("M-/" . citre-ace-peek)
+              ("C-x c u" . citre-update-this-tags-file)))
 
 
-					; bookmarks
+                                        ; bookmarks
 (use-package bm
   :ensure t
   :demand t
@@ -592,33 +591,33 @@
         verilog-indent-begin-after-if     'nil
         verilog-indent-lists              t ; 'nil
         verilog-auto-lineup               'all;'declarations)
-	verilog-align-ifelse              t
-	verilog-highlight-p1800-keywords  t
-	verilog-indent-declaration-macros t)
+        verilog-align-ifelse              t
+        verilog-highlight-p1800-keywords  t
+        verilog-indent-declaration-macros t)
 
   ; function I wrote to highlight nice things not highlighted by default.
   (defun verilog-extend-font-lock ()
     (font-lock-add-keywords nil '(
                                         ; Valid hex number (will highlight invalid suffix though)
-				  ("'[b o h d][[:xdigit:]]+\\b" . font-lock-warning-face)
+                                  ("'[b o h d][[:xdigit:]]+\\b" . font-lock-warning-face)
 
                                         ; number
-				  ("\\b[0-9]+\\b" . font-lock-string-face)
+                                  ("\\b[0-9]+\\b" . font-lock-string-face)
 
                                         ;negations symbols
-				  ("\\(\\[~]\\)\\|\\(\\!=*\\)" . font-lock-warning-face)
+                                  ("\\(\\[~]\\)\\|\\(\\!=*\\)" . font-lock-warning-face)
 
                                         ; operation symbols and commas
-				  ("[+=<>%\\*/:&^\\|;,.-]" . font-lock-type-face)
+                                  ("[+=<>%\\*/:&^\\|;,.-]" . font-lock-type-face)
 
                                         ;highlight things inside parenthesis []
-				  ("\\[\s*\\([$]\\|[[:alnum:]]+\\)\s*\\]" 1 font-lock-builtin-face)
+                                  ("\\[\s*\\([$]\\|[[:alnum:]]+\\)\s*\\]" 1 font-lock-builtin-face)
                                         ;highlight #(thing) even if attached to a word.
                                         ;example uvm_config_db#(uvm_bitstream_t)
-				  ("#([a-z_A-Z0-9]+)?" . font-lock-type-face))))
+                                  ("#([a-z_A-Z0-9]+)?" . font-lock-type-face))))
   :bind (:map verilog-mode-map
-	      ("C-{" . verilog-beg-of-defun)
-	      ("C-}" . verilog-end-of-defun))
+              ("C-{" . verilog-beg-of-defun)
+              ("C-}" . verilog-end-of-defun))
   :hook (verilog-mode . verilog-extend-font-lock))
 
 (use-package cperl-mode
@@ -629,7 +628,7 @@
   ;; cperl-mode
   (setq cperl-indent-level 4
         cperl-highlight-variables-indiscriminately t
-	cperl-electric-parens nil ; below this there are things from internet. check them
+        cperl-electric-parens nil ; below this there are things from internet. check them
         cperl-continued-statement-offset 4
         cperl-close-paren-offset -4
         cperl-label-offset -4
@@ -642,7 +641,7 @@
   (smartparens-enabled-hook . (lambda() (define-key cperl-mode-map "{" nil)))
   (smartparens-disabled-hook . (lambda() (define-key cperl-mode-map "{" 'cperl-electric-lbrace))))
 
-; these have to be improved; maybe use only font lock without indentation... don't know.
+; these have to be improved; maybe use only font lock without indentation...
 (add-to-list 'auto-mode-alist '("\\.f" . verilog-mode))
 (add-to-list 'auto-mode-alist '("\\.vsif[h]" . c-mode))
 
@@ -712,7 +711,7 @@
   (setq vterm-max-scrollback 1000000)
 
   :bind (:map vterm-mode-map
-	      ("C-y" . vterm-yank))
+              ("C-y" . vterm-yank))
   :hook
   (vterm-mode-hook . (lambda() (display-line-numbers-mode -1))))
 
@@ -728,69 +727,11 @@
   :custom
   (which-function-mode 1))
 
-
-;;;;;
-
 (defun init-file-open ()
   (interactive)
   (find-file "~/.emacs.d/init.el"))
 
 
-
-;; ;backup files
-;; ;all backup files in the same folder.
-;; (setq backup-directory-alist `(("." . "~/.saves")))
-;; (setq backup-by-copying t)
-;; (setq delete-old-versions t
-;;   kept-new-versions 6
-;;   kept-old-versions 2
-;;   version-control t)
-
-
-;; ;blink parenthesis removed by show paren mode
-;; (show-paren-mode t)
-;; (require 'flycheck)
-;; (add-hook 'prog-mode-hook 'flycheck-mode)
-;; (setq flycheck-emacs-lisp-load-path 'inherit)
-
-;; (require 'flycheck-hdl-irun)
-;; (setq flycheck-hdl-irun-hdlvar
-;;    (concat (getenv "PRJ_HOME") "/env/df2/hdl.var"))
-;; (setq flycheck-hdl-irun-args (quote ("-v200x" "-extv200x")))
-
-
-;; ;; (defun mdc-prog-mode-hook ()
-;; ;;     (interactive)
-;; ;;     (flymake-mode t))
-
-;; ;; (add-hook 'prog-mode-hook 'mdc-prog-mode-hook)
-
-
-;; (require 'stupid-indent-mode)
-;; (setq stupid-indent-level indent-level)
-;; (add-hook 'prog-mode-hook 'stupid-indent-mode)
-
-
-;; ;; (require 'highlight-indent-guides)
-;; ;; (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
-;; ;; (setq highlight-indent-guides-method 'bitmap)
-;; ;(setq highlight-indent-guides-character ?|)
-
-;; (require 'highlight-indentation)
-;; (add-hook 'prog-mode-hook 'highlight-indentation-mode)
-
-;; (add-to-list 'load-path "~/.emacs.d/lisp/god-mode-master/")
-;; (setq god-mode-enable-function-key-translation nil)
-;; (require 'god-mode)
-;; (global-set-key (kbd "<escape>") #'god-mode-all)
-
-;; (setq god-exempt-major-modes nil)
-;; (setq god-exempt-predicates nil)
-
-;; (defun my-god-mode-update-cursor-type ()
-;;   (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
-
-;; (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -812,48 +753,47 @@
   :after cape-keyword
   :init
   (add-to-list 'cape-keyword-list
-				 '(verilog-mode
-				   "and" "buf" "bufif0" "bufif1" "cmos" "defparam" "event" "genvar" "highz0" "highz1" "inout" "input"
-				   "integer" "localparam" "mailbox" "nand" "nmos" "nor" "not" "notif0" "notif1" "or"
-				   "output" "parameter" "pmos" "pull0" "pull1" "pulldown" "pullup" "rcmos" "real" "realtime"
-				   "reg" "rnmos" "rpmos" "rtran" "rtranif0" "rtranif1" "semaphore" "signed" "specparam" "strong0"
-				   "strong1" "supply" "supply0" "supply1" "time" "tran" "tranif0" "tranif1" "tri" "tri0" "tri1" "triand"
-				   "trior" "trireg" "unsigned" "uwire" "vectored" "wand" "weak0" "weak1" "wire" "wor" "xnor" "xor"
-				   "bit" "byte" "chandle" "const" "enum" "int" "logic" "longint" "packed" "ref" "shortint" "shortreal"
-				   "static" "string" "struct" "type" "typedef" "union" "var" "interconnect" "nettype" "above" "abs"
-				   "absdelay" "abstol" "ac_stim" "access" "acos" "acosh" "aliasparam"
-				   "analog" "analysis" "asin" "asinh" "atan" "atan2" "atanh" "branch" "ceil" "connect"
-				   "connectmodule" "connectrules" "continuous" "cos" "cosh" "ddt" "ddt_nature" "ddx" "discipline"
-				   "discrete" "domain" "driver_update" "endconnectmodule" "endconnectrules" "enddiscipline"
-				   "endnature" "endparamset" "exclude" "exp" "final_step" "flicker_noise" "floor" "flow"
-				   "from" "ground" "hypot" "idt" "idt_nature" "idtmod" "inf" "initial_step" "laplace_nd"
-				   "laplace_np" "laplace_zd" "laplace_zp" "last_crossing" "limexp" "ln" "log" "max"
-				   "merged" "min" "nature" "net_resolution" "noise_table" "paramset" "potential"
-				   "pow" "resolveto" "sin" "sinh" "slew" "split" "sqrt" "tan" "tanh" "timer"
-				   "transition" "units" "white_noise" "wreal" "zi_nd" "zi_np" "zi_zd" "zi_zp"
-				   "always" "assign" "automatic" "case" "casex" "casez" "cell" "config" "deassign"
-				   "default" "design" "disable" "edge" "else" "endcase" "endconfig" "endfunction"
-				   "endgenerate" "endmodule" "endprimitive" "endspecify" "endtable" "endtask" "for"
-				   "force" "forever" "fork" "function" "generate" "if" "ifnone" "incdir" "include"
-				   "initial" "instance" "join" "large" "liblist" "library" "macromodule" "medium"
-				   "module" "negedge" "noshowcancelled" "posedge" "primitive" "pulsestyle_ondetect"
-				   "pulsestyle_onevent" "release" "repeat" "scalared" "showcancelled" "small" "specify"
-				   "strength" "table" "task" "use" "wait" "while" "alias" "always_comb" "always_ff"
-				   "always_latch" "assert" "assume" "analog" "before" "bind" "bins" "binsof" "break"
-				   "class" "clocking" "constraint" "context" "continue" "cover" "covergroup" "coverpoint"
-				   "cross" "dist" "do" "endclass" "endclocking" "endgroup" "endinterface" "endpackage"
-				   "endprogram" "endproperty" "endsequence" "expect" "export" "extends" "extern" "final"
-				   "first_match" "foreach" "forkjoin" "iff" "ignore_bins" "illegal_bins" "import" "inside"
-				   "interface" "intersect" "join_any" "join_none" "local" "matches" "modport" "new" "null"
-				   "package" "priority" "program" "property" "protected" "pure" "rand" "randc" "randcase"
-				   "randsequence" "return" "sequence" "solve" "super" "tagged" "this" "throughout" "timeprecision"
-				   "timeunit" "unique" "virtual" "void" "wait_order" "wildcard" "with" "within" "accept_on"
-				   "checker" "endchecker" "eventually" "global" "implies" "let" "nexttime" "reject_on" "restrict"
-				   "s_always" "s_eventually" "s_nexttime" "s_until" "s_until_with" "strong" "sync_accept_on"
-				   "sync_reject_on" "unique0" "until" "until_with" "untyped" "weak" "implements" "soft" "begin" "end")))
+                                 '(verilog-mode
+                                   "and" "buf" "bufif0" "bufif1" "cmos" "defparam" "event" "genvar" "highz0" "highz1" "inout" "input"
+                                   "integer" "localparam" "mailbox" "nand" "nmos" "nor" "not" "notif0" "notif1" "or"
+                                   "output" "parameter" "pmos" "pull0" "pull1" "pulldown" "pullup" "rcmos" "real" "realtime"
+                                   "reg" "rnmos" "rpmos" "rtran" "rtranif0" "rtranif1" "semaphore" "signed" "specparam" "strong0"
+                                   "strong1" "supply" "supply0" "supply1" "time" "tran" "tranif0" "tranif1" "tri" "tri0" "tri1" "triand"
+                                   "trior" "trireg" "unsigned" "uwire" "vectored" "wand" "weak0" "weak1" "wire" "wor" "xnor" "xor"
+                                   "bit" "byte" "chandle" "const" "enum" "int" "logic" "longint" "packed" "ref" "shortint" "shortreal"
+                                   "static" "string" "struct" "type" "typedef" "union" "var" "interconnect" "nettype" "above" "abs"
+                                   "absdelay" "abstol" "ac_stim" "access" "acos" "acosh" "aliasparam"
+                                   "analog" "analysis" "asin" "asinh" "atan" "atan2" "atanh" "branch" "ceil" "connect"
+                                   "connectmodule" "connectrules" "continuous" "cos" "cosh" "ddt" "ddt_nature" "ddx" "discipline"
+                                   "discrete" "domain" "driver_update" "endconnectmodule" "endconnectrules" "enddiscipline"
+                                   "endnature" "endparamset" "exclude" "exp" "final_step" "flicker_noise" "floor" "flow"
+                                   "from" "ground" "hypot" "idt" "idt_nature" "idtmod" "inf" "initial_step" "laplace_nd"
+                                   "laplace_np" "laplace_zd" "laplace_zp" "last_crossing" "limexp" "ln" "log" "max"
+                                   "merged" "min" "nature" "net_resolution" "noise_table" "paramset" "potential"
+                                   "pow" "resolveto" "sin" "sinh" "slew" "split" "sqrt" "tan" "tanh" "timer"
+                                   "transition" "units" "white_noise" "wreal" "zi_nd" "zi_np" "zi_zd" "zi_zp"
+                                   "always" "assign" "automatic" "case" "casex" "casez" "cell" "config" "deassign"
+                                   "default" "design" "disable" "edge" "else" "endcase" "endconfig" "endfunction"
+                                   "endgenerate" "endmodule" "endprimitive" "endspecify" "endtable" "endtask" "for"
+                                   "force" "forever" "fork" "function" "generate" "if" "ifnone" "incdir" "include"
+                                   "initial" "instance" "join" "large" "liblist" "library" "macromodule" "medium"
+                                   "module" "negedge" "noshowcancelled" "posedge" "primitive" "pulsestyle_ondetect"
+                                   "pulsestyle_onevent" "release" "repeat" "scalared" "showcancelled" "small" "specify"
+                                   "strength" "table" "task" "use" "wait" "while" "alias" "always_comb" "always_ff"
+                                   "always_latch" "assert" "assume" "analog" "before" "bind" "bins" "binsof" "break"
+                                   "class" "clocking" "constraint" "context" "continue" "cover" "covergroup" "coverpoint"
+                                   "cross" "dist" "do" "endclass" "endclocking" "endgroup" "endinterface" "endpackage"
+                                   "endprogram" "endproperty" "endsequence" "expect" "export" "extends" "extern" "final"
+                                   "first_match" "foreach" "forkjoin" "iff" "ignore_bins" "illegal_bins" "import" "inside"
+                                   "interface" "intersect" "join_any" "join_none" "local" "matches" "modport" "new" "null"
+                                   "package" "priority" "program" "property" "protected" "pure" "rand" "randc" "randcase"
+                                   "randsequence" "return" "sequence" "solve" "super" "tagged" "this" "throughout" "timeprecision"
+                                   "timeunit" "unique" "virtual" "void" "wait_order" "wildcard" "with" "within" "accept_on"
+                                   "checker" "endchecker" "eventually" "global" "implies" "let" "nexttime" "reject_on" "restrict"
+                                   "s_always" "s_eventually" "s_nexttime" "s_until" "s_until_with" "strong" "sync_accept_on"
+                                   "sync_reject_on" "unique0" "until" "until_with" "untyped" "weak" "implements" "soft" "begin" "end")))
 
 
-(use-package ligature)
 
 (use-package ligature
   :load-path "path-to-ligature-repo"
@@ -871,19 +811,19 @@
                                      "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
                                      "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
                                      "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"
-				     "|->" "|=>"))
+                                     "|->" "|=>"))
 
   (ligature-set-ligatures 'vterm-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
-					":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
-					"-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
-					"#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
-					"/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
-					"++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
-					"=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
-					"<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
-					"<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
-					"<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"
-					"|->" "|=>"))
+                                        ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+                                        "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+                                        "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+                                        "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+                                        "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+                                        "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+                                        "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+                                        "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+                                        "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"
+                                        "|->" "|=>"))
   (global-ligature-mode t))
 
 (use-package desktop
@@ -906,24 +846,18 @@
 
   :hook (verilog-mode . lsp))
 
-
-
-;; (use-package verilog-ext-mode
-
-;;   :demand
-;;   :hook ((verilog-mode . verilog-ext-which-func))
-;;   :config
-;;   (verilog-ext-mode-setup))
-
 (use-package verilog-ext
  :straight (:host github :repo "gmlarumbe/verilog-ext")
  :after verilog-mode
  :hook ((verilog-mode . verilog-ext-which-func)
-	(verilog-mode . verilog-ext-hs-setup))
+        (verilog-mode . verilog-ext-hs-setup))
  ;:config (verilog-ext-mode-setup)
  )
 
 
+(use-package slime
+  :init
+  (setq inferior-lisp-program "sbcl.exe"))
 
 
 (straight-use-package 'tree-sitter)
