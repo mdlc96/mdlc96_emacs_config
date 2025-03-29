@@ -50,7 +50,7 @@ if ($?INSIDE_EMACS) then
         # vterm
         alias cd 'cd \!*; echo -n "\e]51;A$PWD\e\\"'
         alias pushd 'pushd \!*; echo -n "\e]51;A$PWD\e\\"'
-        alias popd 'pushd \!*; echo -n "\e]51;A$PWD\e\\"'
+        alias popd 'popd \!*; echo -n "\e]51;A$PWD\e\\"'
     else if ($INSIDE_EMACS =~ *term*) then
         # make term-mode/ansi term-mode work inside emacs.
         echo "\033AnSiTu $USER"
