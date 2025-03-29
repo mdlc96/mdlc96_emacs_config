@@ -996,6 +996,7 @@
 ;;  )
 
 (use-package verilog-ext
+  :straight (:host github :repo "gmlarumbe/verilog-ext")
   :after verilog-mode
   :demand
   :hook 
@@ -1030,6 +1031,7 @@
 )
 
 (use-package verilog-ts-mode
+  :straight (:host github :repo "gmlarumbe/verilog-ts")
   :mode 
   ("\\.vae?" . verilog-ts-mode)
   ("\\.vams" . verilog-ts-mode)
@@ -1061,6 +1063,7 @@
     (setq inferior-lisp-program "sbcl.exe"))
 
 (use-package fpga
+  :straight (:host github :repo "gmlarumbe/fpga")
   :mode (("\\.vsifh?\\'" . fpga-cadence-vsif-mode)))
 
 (use-package spice-mode
@@ -1073,6 +1076,7 @@
   :straight (skill :type git :host github :repo "Aurelbuche/skill-mode"))
 
 (use-package wavedrom-mode
+  :straight (:host github :repo "gmlarumbe/wavedrom-mode")
   :config
   (setq 
     wavedrom-output-format "png"
@@ -1116,9 +1120,10 @@
     file-time
     file-size
     )
-  (dirvish-override-dired-mode)
   )
+  (dirvish-override-dired-mode)
 )
+
 
 (use-package logview)
 
