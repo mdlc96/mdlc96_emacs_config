@@ -1,0 +1,62 @@
+# to display dots (...) when I use %c0n to display only last n elements in the $cwd
+set ellipsis
+
+# avoid duplicates in pushd operations
+set dunique
+
+# do not print directory stack on pushd
+set pushdsilent
+
+# shell tries to correct command when misspelled
+set correct = cmd
+
+# number of elements in the shell history
+set history = 200
+
+limit coredumpsize 0
+
+# setenv P4DIFF
+# setenv EDITOR
+
+# more memory for java heap. Reduces vmgr crashing
+setenv VMANAGER_JM_XMX 65536
+
+### Initial color as variable
+set     red="%{\033[1;31m%}"
+set   green="%{\033[0;32m%}"
+set  yellow="%{\033[1;33m%}"
+set    blue="%{\033[1;34m%}"
+set magenta="%{\033[1;35m%}"
+set    cyan="%{\033[1;36m%}"
+set   white="%{\033[0;37m%}"
+set     end="%{\033[0m%}" # This is needed at the end... :(
+
+# my green was \033[32m%}, maybe they are the same.
+
+# setprompt
+# alias cd 'chdir \!* && setprompt'
+
+set bold = "%B"
+set endbold = "%b"
+# prompt custom mdc
+# [username@server] ...dir1/dir2/dir3/dir4
+
+set prompt = "%B${green}[%n] %c04%b\n%B${green}$ %b${end}"
+# alias setprompt 'set prompt="${red}`whoami`${cyan}\@${yellow}`hostname` ${end}`pwd` % "'
+
+# setup Emacs find-file inside terminals
+if ($?INSIDE_EMACS) then
+    if ($INSIDE_EMACS == vterm) then
+        # vterm
+        alias cd 'cd \!*; echo -n "\e]51;A$PWD\e\\"'
+        alias pushd 'pushd \!*; echo -n "\e]51;A$PWD\e\\"'
+        alias popd 'pushd \!*; echo -n "\e]51;A$PWD\e\\"'
+    else if ($INSIDE_EMACS =~ *term*) then
+        # make term-mode/ansi term-mode work inside emacs.
+        echo "\033AnSiTu $USER"
+        echo "\033AnSiTc $PWD"
+        alias cd 'cd \!*; echo "\033AnSiTc $PWD"'
+        alias pushd 'pushd \!*; echo "\033AnSiTc $PWD"'
+        alias popd 'popd \!*; echo "\033AnSiTc $PWD"'
+    endif
+endif
