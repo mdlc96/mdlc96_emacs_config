@@ -768,6 +768,8 @@
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline-mode 1)
+  :config
+  (advice-add #'fit-window-to-buffer :before (lambda (&rest _) (redisplay t))) ; avoid weird behavior on org mode
 )
 ;; (use-package doom-modeline
 ;;   :hook (after-init . doom-modeline-mode)
