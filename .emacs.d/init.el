@@ -18,35 +18,49 @@
 ;; Configure use-package to use straight.el by default
 (use-package straight
              :custom (straight-use-package-by-default t))
-             
+
 
 ;; Vterm configuration
 (use-package vterm
-  :config 
+  :config
   (setq vterm-max-scrollback 10000)
   (setq-local display-line-numbers nil)
 
-  :bind 
+  :bind
     (:map vterm-mode-map
-       ("C-y" . vterm-yank) 
+       ("C-y" . vterm-yank)
     )
-  :hook 
+  :hook
   ; disable showing of columns/row number in terminal
-  (vterm-mode . (lambda() (display-line-numbers-mode -1))) 
+  (vterm-mode . (lambda() (display-line-numbers-mode -1)))
   (vterm-mode . (lambda() (line-number-mode -1)))
   (vterm-mode . (lambda() (column-number-mode -1)))
 )
 
 (straight-use-package 'org)
+(use-package org
+  :ensure t
+  :custom
+  (org-log-into-drawer 'LOGBOOK)
+  (org-log-done 'time)
+  (org-startup-indented t))
+
+
+(use-package org-modern
+  :after org
+  :ensure t
+  :init (global-org-modern-mode))
+
+
 
 ; not really sure if this is needed with straight
-(use-package auto-package-update
-   :ensure t
-   :config
-   (setq auto-package-update-delete-old-versions t
-         auto-package-update-interval 4)
-   (auto-package-update-maybe)
-)
+;; (use-package auto-package-update
+;;    :ensure t
+;;    :config
+;;    (setq auto-package-update-delete-old-versions t
+;;          auto-package-update-interval 4)
+;;    (auto-package-update-maybe)
+;; )
 
 
 
@@ -57,9 +71,9 @@
 (use-package no-littering
   :ensure t
   :config
-  (setq 
+  (setq
       backup-by-copying t
-      backup-directory-alist '(("." . "~/.emacs.d/emacs_backup_saves/")) 
+      backup-directory-alist '(("." . "~/.emacs.d/emacs_backup_saves/"))
       delete-old-versions t
       kept-new-versions 10
       kept-old-versions 10
@@ -74,7 +88,7 @@
 (use-package modus-themes
   :init
   (setq
-    modus-themes-common-palette-overrides '( 
+    modus-themes-common-palette-overrides '(
       (comment yellow-cooler)
       ;(string green-cooler)
       (bg-paren-match bg-magenta-intense)
@@ -88,10 +102,10 @@
   ;(load-theme 'modus-vivendi :noconfirm)
   :bind ("<f5>" . modus-themes-toggle))
 
-; emacs base config
+;; ; emacs base config
 (use-package emacs
   :init
-  (setq 
+  (setq
     inhibit-startup-screen t
     column-number-mode t ; show column number
     line-number-mode t ; show line number
@@ -106,24 +120,49 @@
     visible-bell -1 ; avoid annoying sounds
 
       ; in M-x, hide commands that do not work in the current mode
-    read-extended-command-predicate #'command-completion-default-include-p 
+    read-extended-command-predicate #'command-completion-default-include-p
   )
   ; find undo management if needed
   ;and package to manage selection of words...
   (show-paren-mode t)
   (global-display-line-numbers-mode 0)
   (tool-bar-mode -1)
+  (menu-bar-mode -1)
 
-  ; Font setup  
-  (cond
-   ((find-font (font-spec :name "Fira Code"))
-    (set-frame-font "Fira Code 14" nil t)))
+  ;:custom
+  ; Font setup
+  (defun efs/set-font-faces ()
+    (message "Setting faces!")
+    (setq efs/default-font-size 14)
+    (cond
+     ((find-font (font-spec :name "Fira Code"))
+      ;(add-to-list 'default-frame-alist '(font . "Fira Code 14")))) ; avoid small font on emacsclient
+      (set-frame-font "Fira Code Retina 14" nil t))))
+
+    ;; (set-face-attribute 'default nil :font "Fira Code Retina" :height efs/default-font-size)
+    ;; ;; Set the fixed pitch face
+    ;; (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height efs/default-font-size)
+    ;; ;; Set the variable pitch face
+    ;; (set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular))
+
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions
+		(lambda (frame)
+		  ;; (setq doom-modeline-icon t)
+		  (with-selected-frame frame
+		    (efs/set-font-faces)))))
+  (efs/set-font-faces)
+
+  ;; (cond
+  ;;  ((find-font (font-spec :name "Fira Code"))
+  ;;   (add-to-list 'default-frame-alist '(font . "Fira Code 14")))) ; avoid small font on emacsclient
+  ;;   ;(set-frame-font "Fira Code 14" nil t)))
 
   :bind
   ("C-c C-q" . comment-or-uncomment-region)
   ("M-*" . pop-tag-mark)
   ("C-M-\\" . indent-region)
-  
+
   :config
   :hook
   (prog-mode . display-line-numbers-mode)
@@ -152,7 +191,7 @@
   :bind ("M-o" . ace-window)
 )
 
-; different color per parenthesis level 
+; different color per parenthesis level
 (use-package rainbow-delimiters
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode)
@@ -176,14 +215,19 @@
   ("M-p"  . symbol-overlay-switch-backward)
   ("<f7>" . symbol-overlay-mode)
   ("<f9>" . symbol-overlay-remove-all)
-  :hook 
+  :hook
   (prog-mode . symbol-overlay-mode)
-)
+  )
 
-; smart white space trimmer 
+(use-package server
+  :ensure t
+  :custom
+  (unless (server-running-p) (server-start)))
+
+; smart white space trimmer
 (use-package ws-butler
   :ensure t
-  :hook 
+  :hook
   (prog-mode . ws-butler-mode)
 )
 
@@ -214,17 +258,17 @@
 
 ; highlight indentation. This one I like it more.
 (use-package indent-bars
-  :straight 
+  :straight
   (indent-bars :type git :host github :repo "jdtsmith/indent-bars")
   :hook
-  ((python-mode yaml-mode verilog-mode) . indent-bars-mode)  
+  ((python-mode yaml-mode verilog-mode) . indent-bars-mode)
 )
 
 ;; vertico
 ;; Enable vertico
 (use-package vertico
-  :straight 
-  (vertico 
+  :straight
+  (vertico
     :files (:defaults "extensions/*")
     :includes (vertico-mouse vertico-directory)
   )
@@ -233,7 +277,7 @@
   (vertico-mode)
   (vertico-mouse-mode)
 
-  :bind 
+  :bind
   (:map vertico-map
     ("<tab>" . vertico-directory-enter)
     ("\t" . vertico-directory-enter) ; \t or \r
@@ -250,7 +294,7 @@
   ;; Configure a custom style dispatcher (see the Consult wiki)
   ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
   ;;       orderless-component-separator #'orderless-escapable-split-on-space)
-  (setq 
+  (setq
     completion-styles '(orderless)
     completion-category-defaults nil
     completion-category-overrides '((file (styles partial-completion)))
@@ -260,7 +304,7 @@
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
   ;; Either bind `marginalia-cycle' globally or only in the minibuffer
-  :bind 
+  :bind
   (:map minibuffer-local-map
     ("M-A" . marginalia-cycle)
   )
@@ -323,7 +367,7 @@
     :map minibuffer-local-map
       ("M-s" . consult-history)                 ;; orig. next-matching-history-element
       ("M-r" . consult-history)                 ;; orig. previous-matching-history-element
-  )                
+  )
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
   ;; relevant when you use the default completion UI.
@@ -334,7 +378,7 @@
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
-  (setq 
+  (setq
     register-preview-delay 0.5
     register-preview-function #'consult-register-format)
 
@@ -395,11 +439,11 @@
 (use-package embark
   :ensure t
 
-  :bind  
+  :bind
   ("C-." . embark-act)         ;; pick some comfortable binding
   ("C-;" . embark-dwim)        ;; good alternative: M-.
   ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
-   
+
   :init
 
   ;; Optionally replace the key help with a completing-read interface
@@ -421,8 +465,8 @@
 
                                         ; corfu autocompletion
 (use-package corfu
-  :straight 
-  (corfu 
+  :straight
+  (corfu
     :files (:defaults "extensions/*")
     :includes (corfu-info corfu-history corfu-popupinfo))
   :custom
@@ -448,7 +492,7 @@
 
   (corfu-popupinfo-delay 0.25)
 
-  :bind 
+  :bind
     ("M-/" . completion-at-point)
     ;; Another key binding can be used, such as S-SPC.
     (:map corfu-map
@@ -462,7 +506,7 @@
       ("M-l" . corfu-show-location)
       ("C-SPC" . corfu-insert-separator)
     )
-  
+
   :init
   (global-corfu-mode)
   (corfu-popupinfo-mode)
@@ -508,14 +552,14 @@
 )
 
 (use-package cape
-  :straight 
-  (cape 
+  :straight
+  (cape
     :files (:defaults "*")
     :includes (cape-keyword cape-char))
 
   ;; Bind dedicated completion commands
   ;; Alternative prefix keys: C-c p, M-p, M-+, ...
-  :bind 
+  :bind
   ("C-c p p" . completion-at-point) ;; capf
   ("C-c p t" . complete-tag)        ;; etags
   ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
@@ -551,7 +595,7 @@
 
   ; add as hook because of verilog-mode replacing locally completion functions.
   :hook
-  (verilog-mode . 
+  (verilog-mode .
     (lambda()
                                         ;(delete t completion-at-point-functions)
       (add-to-list 'completion-at-point-functions #'cape-keyword)
@@ -559,12 +603,12 @@
       (add-to-list 'completion-at-point-functions #'cape-dabbrev)))
 )
 
-; project management. 
+; project management.
 (use-package projectile
   :ensure t
   :init
   (projectile-mode +1)
-  :bind 
+  :bind
   (:map projectile-mode-map
     ("s-p" . projectile-command-map)
     ("C-c j" . projectile-command-map)
@@ -600,7 +644,7 @@
     ;; certain modes (like `prog-mode'), set it like this.
     citre-auto-enable-citre-mode-modes '(prog-mode)
   )
-  :bind 
+  :bind
     (:map citre-mode-map
       ("M-." . citre-jump)
       ("M-*" . citre-jump-back)
@@ -639,7 +683,7 @@
   ;; Saving the repository to file when on exit.
   ;; kill-buffer-hook is not called when Emacs is killed, so we
   ;; must save all bookmarks first.
-  (add-hook 'kill-emacs-hook 
+  (add-hook 'kill-emacs-hook
     #'(lambda nil
       (bm-buffer-save-all)
       (bm-repository-save)
@@ -676,13 +720,13 @@
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 
 (use-package verilog-mode
-  :mode 
+  :mode
   ("\\.vae?" . verilog-mode)
   ("\\.vams" . verilog-mode)
 
   :config
   (setq
-    verilog-indent-spaces             3 
+    verilog-indent-spaces             3
     verilog-indent-level              verilog-indent-spaces
     verilog-indent-level-module       verilog-indent-spaces
     verilog-indent-level-declaration  verilog-indent-spaces
@@ -753,10 +797,6 @@
   (smartparens-enabled-hook . (lambda() (define-key cperl-mode-map "{" nil)))
   (smartparens-disabled-hook . (lambda() (define-key cperl-mode-map "{" 'cperl-electric-lbrace))))
 
-; these have to be improved; maybe use only font lock without indentation...
-;(add-to-list 'auto-mode-alist '("\\.f" . verilog-mode))
-;(add-to-list 'auto-mode-alist '("\\.vsif[h]" . c-mode))
-
 (use-package emacs ; without this operandi theme is loaded.
   :init
   :config
@@ -767,9 +807,11 @@
 ;; probably I could spend a little time to customize better the modeline
 (use-package doom-modeline
   :ensure t
-  :init (doom-modeline-mode 1)
+  :straight (:host github :repo "seagle0128/doom-modeline")
+  ;:disabled
+  :hook (after-init . doom-modeline-mode)
   :config
-  (advice-add #'fit-window-to-buffer :before (lambda (&rest _) (redisplay t))) ; avoid weird behavior on org mode
+  ;(advice-add #'fit-window-to-buffer :before (lambda (&rest _) (redisplay t)))
 )
 ;; (use-package doom-modeline
 ;;   :hook (after-init . doom-modeline-mode)
@@ -839,7 +881,7 @@
 ; ♬ if  only I could be so grossly incandescent ♬
 (use-package solaire-mode
   :ensure t
-  :hook 
+  :hook
   (after-init . solaire-global-mode))
 
 (use-package golden-ratio
@@ -855,10 +897,17 @@
   :hook
   (prog-mode . format-all-mode)
   :config
-  (setq-default format-all-formatters 
+  (setq-default format-all-formatters
     '(("C" (astyle "--mode-c"))
     ("Shell" (shfmt "-i" "4" "-ci"))))
-)
+  )
+
+					; custom mode files
+(use-package emacs
+  :mode
+  ("\\.f" . shell-script-mode)
+  ;("\\.\\(\\(t?cshrc\\)\\|\\(bashrc\\)\\|\\(zshrc\\)\\)\\(.user\\)?" . shell-script-mode)
+  ("\\..+?\\(shrc\\)\\(.user\\)?" . shell-script-mode))
 
 (defun init-file-open ()
   (interactive)
@@ -876,6 +925,7 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    '("5a9c693de1999fae9ba09269a4aae08740d6dd342c510e416f42b49f59d63fe0" "3ab376acffab6b4e79ae2b6e0a1cce3fa21dbac0027f0ff0dfef02b5c838dba9" default))
+ '(org-agenda-files '("c:/msys64/home/matte/notes/activities.org"))
  '(package-selected-packages
    '(verilog-mode p4 yasnippet ws-butler vertico use-package symbol-overlay smartparens rainbow-delimiters projectile orderless no-littering modus-themes marginalia embark-consult doom-modeline corfu citre cape bm all-the-icons ace-window)))
 (custom-set-faces
@@ -984,10 +1034,10 @@
   :hook (verilog-mode . lsp))
 
 ; Automatically switch to ts-mode for major mode, if available
-(use-package treesit-auto
-  :demand t
-  :config 
-  (global-treesit-auto-mode))
+;; (use-package treesit-auto
+;;   :demand t
+;;   :config
+;;   (global-treesit-auto-mode))
 
 ;; (use-package verilog-ext
 ;;  :straight (:host github :repo "gmlarumbe/verilog-ext")
@@ -1001,17 +1051,17 @@
   :straight (:host github :repo "gmlarumbe/verilog-ext")
   :after verilog-mode
   :demand
-  :hook 
+  :hook
   (verilog-mode . verilog-ext-mode)
   :init
-  (setq 
+  (setq
     verilog-ext-feature-list '(
-      font-lock 
-      xref 
+      font-lock
+      xref
       capf
-      hierarchy 
-      eglot 
-      lsp 
+      hierarchy
+      eglot
+      lsp
       flycheck
       beautify
       navigation
@@ -1028,13 +1078,13 @@
       ports
     )
   )
-  :config 
+  :config
   (verilog-ext-mode-setup)
 )
 
 (use-package verilog-ts-mode
-  :straight (:host github :repo "gmlarumbe/verilog-ts")
-  :mode 
+  :straight (:host github :repo "gmlarumbe/verilog-ts-mode")
+  :mode
   ("\\.vae?" . verilog-ts-mode)
   ("\\.vams" . verilog-ts-mode)
 
@@ -1080,34 +1130,23 @@
 (use-package wavedrom-mode
   :straight (:host github :repo "gmlarumbe/wavedrom-mode")
   :config
-  (setq 
+  (setq
     wavedrom-output-format "png"
     wavedrom-output-directory "~/wavedrom"
   )
-  (set-face-attribute 'wavedrom-font-lock-brackets-face-nil :foreground "goldenrod" nil)
-  (set-face-attribute 'wavedrom-font-lock-punctuation-face nil :foreground "burlywood" nil)
+  ;(set-face-attribute 'wavedrom-font-lock-brackets-face-nil :foreground "goldenrod" nil)
+  ;(set-face-attribute 'wavedrom-font-lock-punctuation-face nil :foreground "burlywood" nil)
 )
 
 (use-package yasnippet-snippets)
 
-(straight-use-package 'tree-sitter)
-(straight-use-package 'tree-sitter-langs)
-(require 'tree-sitter)
-(require 'tree-sitter-langs)
+;; (straight-use-package 'tree-sitter)
+;; (straight-use-package 'tree-sitter-langs)
+
+;; (require 'tree-sitter)
+;; (require 'tree-sitter-langs)
 
 (use-package apheleia)
-
-(use-package org
-  :ensure t
-  :config
-  (setq 
-    org-log-done 'time
-    org-startup-indented t))
-
-(use-package org-modern
-  :ensure t
-  :init (global-org-modern-mode))
-
 
 (use-package graphviz-dot-mode)
 
@@ -1121,15 +1160,27 @@
     git-msg
     file-time
     file-size
-    )
-  )
-  (dirvish-override-dired-mode)
-)
+    ))
+  (dirvish-override-dired-mode))
 
+(use-package log4j-mode
+  :mode
+  ("\\.log" . log4j-mode)
+  :custom
+  (log4j-match-error-regexp "\\*E\\|\\(\\<\\(ERROR\\|SEVERE\\)\\>\\)")
+  (log4j-match-warn-regexp "\\*W\\|\\(\\<\\(WARN\\(?:ING\\)?\\)\\>\\)")
+  (log4j-match-fatal-regexp "\\*F\\|\\(\\<\\(FATAL\\)\\>\\)")
+  (log4j-match-info-regexp "\\*I\\|\\(\\<\\(INFO\\)\\>\\)")
+  (log4j-match-debug-regexp "\\<\\(DEBUG\\|FINE\\(?:R\\|ST\\)?\\|STATUS\\)\\>")
+  (log4j-match-config-regexp "\\<\\(CONFIG\\)\\>"))
 
-(use-package logview)
+(use-package spacious-padding
+  :config
+  (spacious-padding-mode +1))
 
 ;; (use-package excorporate)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; things not really useful, but fun
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1137,19 +1188,19 @@
   :ensure t
   :config
   (poke-line-global-mode 1)
-  (setq-default poke-line-pokemon "blaziken"))
+  (setq-default poke-line-pokemon "dialga"))
 
 (use-package nyan-mode
   :config
   (nyan-mode -1)
   (setq nyan-animate-nyancat t)
   (setq nyan-wavy-trail t)
-) 
+)
 
 (use-package mega-zone
   :straight (mega-zone :type git :host github :repo "twitchy-ears/mega-zone")
   :after zone
-  :config 
+  :config
   (mega-zone-setup t)
   (setq mega-zone-dispatch-action 'zone-all)
 )
@@ -1181,7 +1232,7 @@
 (use-package 2048-game)
 (use-package gnugo)
 (use-package xkcd)
-(use-package pacmacs)
+; (use-package pacmacs)
 (use-package selectric-mode)
 
 (use-package clippy
@@ -1195,3 +1246,6 @@
   (parrot-start-animation))
 
 (use-package minimap)
+
+
+(advice-add #'fit-window-to-buffer :before (lambda (&rest _) (redisplay t)))
