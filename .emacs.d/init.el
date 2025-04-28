@@ -43,7 +43,19 @@
   :custom
   (org-log-into-drawer 'LOGBOOK)
   (org-log-done 'time)
-  (org-startup-indented t))
+  (org-startup-indented t)
+  (org-agenda-files '("~/notes/activities.org"
+		      "~/notes/pending.org"))
+  (org-refile-targets '((org-agenda-files :maxlevel . 9)))
+  (org-outline-path-complete-in-steps nil) ; refile in a single go
+  (org-refile-use-outline-path 'file) ; show full path for refiling
+  (org-refile-allow-creating-parent-nodes 'confirm)
+
+  :bind
+  (:map org-mode-map
+	("<f6>" . org-capture)
+	("C-c a" . org-agenda))
+  )
 
 
 (use-package org-modern
